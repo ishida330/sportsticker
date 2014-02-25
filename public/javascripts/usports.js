@@ -1,64 +1,55 @@
 //game ops
 var count = 0;
+var t_idx = 0;
+var timing = [3,8,13,20,100];
 var script = [
-				{su_score:"37", duke_score:"33", ticker:"ticker4"},
-				{su_score:"38", duke_score:"33", ticker:"ticker3"},
-				{su_score:"38", duke_score:"35", ticker:"ticker2"},
-				{su_score:"38", duke_score:"35", ticker:"ticker1"}
+				{su_score:"37", duke_score:"33", ticker:"ticker4", event:"SU: Jerami Grant made Free Throw.", data:"score"},
+				{su_score:"38", duke_score:"33", ticker:"ticker3", event:"SU: Jerami Grant made Free Throw.", data:"score"},
+				{su_score:"38", duke_score:"35", ticker:"ticker2", event:"Duke: Amile Jefferson made Dunk. Assisted by Rasheed Sulaimon.",data:"score"},
+				{su_score:"38", duke_score:"35", ticker:"ticker1", event:"<p style='text-align:center'><b>End of first half</b></p>",data:"halftime"},
+				{su_score:"38", duke_score:"35", ticker:"ticker1", event:"",data:"clear"}
 				];
 				
 $(document).ready(function(){
 
-		Reactor.onMessage(function(message){
-			var b = message.body;
+		Reactor.ready(function(){
+			Reactor.start();
 			
-			b = b.replace('#{clientmessage}', "Syracuse-38, Duke-35");
-			$('#content').html(b);
-			$('#content').show();
+			Reactor.onMessage(function(message){
+				var b = message.body;
+				
+				b = b.replace('#{clientmessage}', "Syracuse-38, Duke-35");
+				$('#content').html(b);
+				$('#content').show();
+			});
 		});
 		
 		window.setInterval(function() {
-			if (count == 3){
-				$('#su-score').html(script[0].su_score);
-				$('#duke-score').html(script[0].duke_score);
-				$('#' + script[0].ticker).show("fast");
-			}
-			if (count == 8){
-				$('#su-score').html(script[1].su_score);
-				$('#duke-score').html(script[1].duke_score);
-				$('#' + script[1].ticker).show("fast");
-			}
-			if (count == 13){
-				$('#su-score').html(script[2].su_score);
-				$('#duke-score').html(script[2].duke_score);
-				$('#' + script[2].ticker).show("fast");
-			}			
-			if (count == 20){
-				$('#su-score').html(script[3].su_score);
-				$('#duke-score').html(script[3].duke_score);
-				$('#' + script[3].ticker).show("fast");
+			if (timing[t_idx] == count){
 				
-				//Now send a notification to reactor
-				Reactor.reset();
+				if (script[t_idx].data == "clear"){
+					$('#content').hide("fast");
+					$('#su-score').html("36");
+					$('#duke-score').html("33");
+					$('.ticker').hide();				
+				}else{
+					$("#tickerblock div:first-child").before("<div id='ticker" + t_idx + "' class='ticker'>" + script[t_idx].event + "</div");				
+					if (script[t_idx].data == "halftime"){
+
+						//Now send a notification to reactor
+						Reactor.reset();
+										
+						Reactor.Client.setAttribute("game", "ncaa");
+						Reactor.Client.setAttribute("half", "first");
 								
-				Reactor.Client.setAttribute("game", "ncaa");
-				Reactor.Client.setAttribute("half", "first");
-						
-				var newPage = new Reactor.Event("PAGE_VIEW", function(message){
+						var newPage = new Reactor.Event("PAGE_VIEW", function(message){
+							
+						});
+						Reactor.EventManager.fireEvent(newPage);			
 					
-				});
-				Reactor.EventManager.fireEvent(newPage);			
-				
-			}			
-			if (count==30){
-				$('#content').hide("fast");
-				$('#su-score').html("36");
-				$('#duke-score').html("33");
-				$('#ticker1').hide();
-				$('#ticker2').hide();
-				$('#ticker3').hide();
-				$('#ticker4').hide();
-				
+					}
+				}
+				t_idx++;
 			}
 			count++;
 		}, 1000);
